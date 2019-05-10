@@ -110,3 +110,86 @@ CREATE TABLE IF NOT EXISTS device (
         ON DELETE NO ACTION
         ON UPDATE NO ACTION
   );
+
+/*Tabla Agent*/
+  CREATE TABLE IF NOT EXISTS agent (
+    agent_id INT NOT NULL AUTO_INCREMENT COMMENT 'ID del agente',
+    agent_identifier1 VARCHAR(20) NOT NULL COMMENT 'Identificación del agente (1)',
+    agent_identifier2 VARCHAR(20) COMMENT 'Segunda identificación agente',
+    agent_firstname VARCHAR(50) NOT NULL,
+    agent_middlename VARCHAR(50),
+    agent_lastname VARCHAR(100) NOT NULL,
+    agent_contactInfo VARCHAR(500),
+
+    PRIMARY KEY (agent_id)
+  );
+
+/*Tabla Queue_Detail */
+CREATE TABLE IF NOT EXISTS queue_detaiil (
+  queuedet_id INT NOT NULL AUTO_INCREMENT,
+  queue_id INT NOT NULL,
+  custom_id INT NOT NULL,
+  queuedet_appointment DATETIME,
+  queuedet_status INT NOT NULL,
+  queuedet_ticket VARCHAR(20),
+  queuedet_created DATETIME NOT NULL,
+  queuedet_modified DATETIME NOT NULL,
+
+  PRIMARY KEY(queuedet_id,queue_id,custom_id),
+  INDEX fk_queuedet_queue_indx (queue_id) VISIBLE,
+  INDEX fk_queuedet_custom_indx (custom_id) VISIBLE,
+  CONSTRAINT fk_queuedet_queue
+    FOREIGN KEY(queue_id)
+      REFERENCES queue (queue_id)
+      ON DELETE NO ACTION
+      ON UPDATE NO ACTION,
+
+  CONSTRAINT fk_queuedet_custom
+    FOREIGN KEY (custom_id)
+      REFERENCES customer (custom_id)
+      ON DELETE NO ACTION
+      ON UPDATE NO ACTION
+);
+
+/*Tabla Queue_log*/
+CREATE TABLE IF NOT EXISTS queue_log (
+  queuelog_id INT NOT NULL AUTO_INCREMENT,
+  queuedet_id_pk INT NOT NULL,
+  agent_id_pk INT NOT NULL,
+  from_device_id_pk INT NOT NULL COMMENT 'ID dispositivo origen',
+  to_device_id_pk INT NOT NULL COMMENT 'ID dispositivo destino',
+  queuelog_from_status INT NOT NULL,
+  queuelog_to_status INT NOT NULL,
+  queuelog_from_datetime DATETIME NOT NULL,
+  queuelog_to_datetime DATETIME NOT NULL,
+
+  PRIMARY KEY(queuelog_id, queuedet_id_pk, agent_id_pk, from_device_id_pk, to_device_id_pk),
+  INDEX fk_queuelog_agent_idx (agent_id_pk) VISIBLE,
+  INDEX fk_queuelog_queuedet_idx (queuedet_id_pk) VISIBLE,
+  INDEX fk_queuelog_device1_idx (from_device_id_pk) VISIBLE,
+  INDEX fk_queuelog_device2_idx (to_device_id_pk) VISIBLE,
+
+  CONSTRAINT fk_queuelog_agent 
+    FOREIGN KEY (agent_id_pk)
+      REFERENCES agent (agent_id)
+      ON DELETE NO ACTION
+      ON UPDATE NO ACTION,
+
+  CONSTRAINT fk_queuelog_queuedet
+    FOREIGN KEY (queuedet_id_pk)
+      REFERENCES queue_detail (queuedet_id)
+      ON DELETE NO ACTION
+      ON UPDATE NO ACTION,
+
+  CONSTRAINT fk_queuelog_from_device 
+    FOREIGN KEY (from_device_id_pk)
+      REFERENCES device (dev_id)
+      ON DELETE NO ACTION
+      ON UPDATE NO ACTION,
+
+  CONSTRAINT fk_queuelog_to_device
+    FOREIGN KEY (to_device_id_pk)
+      REFERENCES device (dev_id)
+      ON DELETE NO ACTION
+      ON UPDATE NO ACTION
+);
